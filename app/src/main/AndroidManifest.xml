@@ -3,6 +3,7 @@
     package="com.example.nanden.awesomeusbmanager">
     <!--since not all the android device will have the usb host api, include the following uses-feature to let the device know-->
     <uses-feature android:name="android.hardware.usb.host"/>
+    <uses-sdk android:maxSdkVersion="15" />
 
     <application
         android:allowBackup="true"
@@ -11,13 +12,23 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!--filtering when data key is attached to this app-->
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <!--data that contains the data key information-->
+            <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter"/>
         </activity>
+        <activity android:name=".ScanActivity"
+            android:screenOrientation="landscape"/>
     </application>
 
 </manifest>
