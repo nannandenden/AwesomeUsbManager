@@ -21,6 +21,19 @@
         android:layout_height="wrap_content" />
 
     <Button
+        android:id="@+id/btnInterface"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="Display Endpoints Information"/>
+
+    <TextView
+        android:id="@+id/tvInterface"
+        android:layout_marginTop="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
         android:id="@+id/btnScan"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -1,11 +1,14 @@
 package com.example.nanden.awesomeusbmanager;
 
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbEndpoint;
+import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -18,8 +21,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * this application is to find usb connected devices.
@@ -37,12 +41,16 @@ public class MainActivity extends AppCompatActivity {
     PendingIntent mPermissionIntent;
     Button btnUsb;
     TextView tvInfo;
+    Button btnInterface;
+    TextView tvInterface;
     Button btnScan;
     // allows you to emulate and communicate with connected USB devices
     UsbManager usbManager;
     // Represents a connected USB devices. contains the method to access it's device information.
     // Also, devices's interface and endpoint information
     UsbDevice usbDevice;
+    // save all the device interfaces
+    Set<UsbInterface> interfaceSet;
 
     private static final int REQUEST_CODE = 0;
     // defining this application's permission
@@ -52,8 +60,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        interfaceSet = new HashSet<>();
+
         btnUsb = findViewById(R.id.btnUsb);
         tvInfo = findViewById(R.id.tvInfo);
+        btnInterface = findViewById(R.id.btnInterface);
+        tvInterface = findViewById(R.id.tvInterface);
         btnScan = findViewById(R.id.btnScan);
 
         btnUsb.setOnClickListener(new View.OnClickListener() {
@@ -65,6 +77,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnInterface.setEnabled(false);
+        btnInterface.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                displayEndpointInfo();
+            }
+        });
+
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -73,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     // listen for intents that gets broadcast when call requestPermission().
     // requestPermission() display a dialog to the user asking for permission to connect to the device.
     BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
@@ -88,12 +109,11 @@ public class MainActivity extends AppCompatActivity {
                     UsbDevice usbDevice = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         if (usbDevice != null) {
-                            Log.d(LOG_TAG, "\nusbDevice.getDeviceProtocol(): " + usbDevice.getDeviceProtocol());
+                            Log.d(LOG_TAG, "usbDevice.getDeviceProtocol(): " + usbDevice.getDeviceProtocol());
                         }
                     } else {
                         Log.d(LOG_TAG, "permission denied");
                     }
-
                 }
                 Log.d(LOG_TAG, "after synchronized: " + usbManager.getDeviceList().isEmpty());
             }
@@ -115,26 +135,53 @@ public class MainActivity extends AppCompatActivity {
         // what is the string value for this....?
         // if successfully obtain all the attached devices, get the devices list into hashmap
         HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
-        String deviceInfo = "";
+        StringBuilder deviceInfo = new StringBuilder();
         if (!deviceList.isEmpty()) {
             for (Map.Entry<String, UsbDevice> device : deviceList.entrySet()) {
                 usbManager.requestPermission(device.getValue(), mPermissionIntent);
-                deviceInfo += "device.getKey():\t" + device.getKey() +
-                        "\nusbDevice.getDeviceName():\t" + device.getValue().getDeviceName() +
-                                "\nusbDevice.getProductName():\t" + device.getValue().getProductName() +
-                                "\nusbDevice.getDeviceClass():\t" + device.getValue().getDeviceClass() +
-                                "\nusbDevice.getDeviceSubclass():\t" + device.getValue().getDeviceSubclass() +
-                                "\nusbDevice.getVendorId():\t" + device.getValue().getVendorId() +
-                                "\nusbDevice.getDeviceProtocol():\t" + device.getValue().getDeviceProtocol() +
-                                "\nusbDevice.getInterface(0).getName():\t" + device.getValue().getInterface(0).getName() +
-                                "\nusbDevice.getProductId():\t" + device.getValue().getProductId() +
-                        "\n\n";
+                deviceInfo.append("device.getKey():\t" + device.getKey());
+                deviceInfo.append("\nusbDevice.getDeviceName():\t" + device.getValue().getDeviceName());
+                deviceInfo.append("\nusbDevice.getProductName():\t" + device.getValue().getProductName());
+                deviceInfo.append("\nusbDevice.getVendorId():\t" + device.getValue().getVendorId());
+                deviceInfo.append("\nusbDevice.getProductId():\t" + device.getValue().getProductId());
+                deviceInfo.append("\ndevice.getValue().getInterfaceCount():\t" + device.getValue().getInterfaceCount());
+                deviceInfo.append("\nusbDevice.getInterface(0).getName():\t" + device.getValue().getInterface(0).getName());
+                deviceInfo.append("\ndevice.getValue().getInterface(0).getEndpointCount(): \t" + device.getValue().getInterface(0).getEndpointCount());
+                // add all the interfaces into the HashSet
+                if (device.getValue().getInterfaceCount() != 0) {
+                    btnInterface.setEnabled(true);
+                    for (int i = 0; i < device.getValue().getInterfaceCount(); i++) {
+                        interfaceSet.add(device.getValue().getInterface(i));
+                    }
+                }
             }
         } else {
             Toast.makeText(this, "No USB device detected", Toast.LENGTH_LONG).show();
         }
-        Log.d(LOG_TAG, deviceInfo);
-        tvInfo.setText(deviceInfo);
+        Log.d(LOG_TAG, deviceInfo.toString());
+        tvInfo.setText(deviceInfo.toString());
+    }
+
+    @SuppressLint("WrongConstant")
+    private void displayEndpointInfo() {
+        StringBuilder endpointInfo = new StringBuilder();
+        for (UsbInterface item: interfaceSet) {
+            for (int i = 0; i < item.getEndpointCount(); i++) {
+                UsbEndpoint endpoint = item.getEndpoint(i);
+                endpointInfo.append("endpoint.getEndpointNumber():\t" + endpoint.getEndpointNumber() + "\n");
+                endpointInfo.append("endpoint.getDirection():\t" + endpoint.getDirection() + "\n");
+                endpointInfo.append("endpoint.getAddress():\t" + endpoint.getAddress() + "\n");
+                endpointInfo.append("endpoint.describeContents():\t" + endpoint.describeContents() + "\n");
+                endpointInfo.append("endpoint.getType():\t" + endpoint.getType() + "\n");
+                endpointInfo.append("endpoint.getAttributes():\t" + endpoint.getAttributes() + "\n");
+                endpointInfo.append("endpoint.getInterval():\t" + endpoint.getInterval() + "\n");
+                endpointInfo.append("endpoint.getMaxPacketSize():\t" + endpoint.getMaxPacketSize() + "\n");
+            }
+        }
+        if (!endpointInfo.toString().isEmpty()) {
+            tvInterface.setText(endpointInfo.toString());
+        }
+
     }
 
     @Override
