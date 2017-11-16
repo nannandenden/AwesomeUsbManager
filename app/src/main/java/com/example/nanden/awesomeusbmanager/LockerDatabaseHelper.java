@@ -8,9 +8,9 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
+import java.util.Map;
 
 /**
  * Created by nanden on 11/15/17.
@@ -31,7 +31,7 @@ public class LockerDatabaseHelper extends SQLiteOpenHelper {
 
     // locker table columns
     private static final String KEY_LOCKER_ID = "id";
-    private static final String KEY_LOCKER_CODE = "code";
+    private static final String KEY_PACKAGE_CODE = "code";
     private static final String KEY_LOCKER_NUMBER = "number";
 
     public static synchronized LockerDatabaseHelper getsInstance(Context context) {
@@ -53,7 +53,7 @@ public class LockerDatabaseHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("CREATE TABLE " + TABLE_LOCKER +
                 "(" +
                 KEY_LOCKER_ID + " INTEGER PRIMARY KEY," + // primary key
-                KEY_LOCKER_CODE + " TEXT," +
+                KEY_PACKAGE_CODE + " TEXT," +
                 KEY_LOCKER_NUMBER + " TEXT" +
                 ")");
     }
@@ -83,7 +83,7 @@ public class LockerDatabaseHelper extends SQLiteOpenHelper {
         try {
             // for store a set of values
             ContentValues contentValues = new ContentValues();
-            contentValues.put(KEY_LOCKER_CODE, locker.code);
+            contentValues.put(KEY_PACKAGE_CODE, locker.code);
             contentValues.put(KEY_LOCKER_NUMBER, locker.lockerNumber);
             // insert row into a database
             // nullColumnHack:  If not set to null, the nullColumnHack parameter provides the name of nullable column name to explicitly insert a NULL into in the case where your values is empty.
@@ -96,23 +96,26 @@ public class LockerDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public Locker getLockerNumber(String code) {
+    public Map<String, Locker> getLockerList() {
+        Map<String, Locker> lockers = new HashMap<>();
         SQLiteDatabase sqLiteDatabase = getReadableDatabase();
-        Locker locker = null;
-        String QUERY = String.format("SELECT * FROM %S WHERE %S = %S", TABLE_LOCKER, KEY_LOCKER_CODE, code);
+        String GET_LOCKER_TABLE_QUERY = String.format("SELECT * FROM %S", TABLE_LOCKER);
         Cursor cursor = null;
         try {
-            cursor = sqLiteDatabase.rawQuery(QUERY, null);
-            cursor.moveToFirst();
-            locker = new Locker(cursor.getString(cursor.getColumnIndex(KEY_LOCKER_CODE)), cursor.getString(cursor.getColumnIndex(KEY_LOCKER_NUMBER)));
-            Log.d(LOG_TAG, "locker.code: " + locker.code + "\tlocker.lockerNumber: " + locker.lockerNumber);
-        } catch (SQLiteException e) {
-            Log.d(LOG_TAG, "Fail to get the locker number: " + e.getMessage());
-        } finally {
-            if (cursor != null) {
-                cursor.close();
+            cursor = sqLiteDatabase.rawQuery(GET_LOCKER_TABLE_QUERY, null);
+            if (cursor.moveToFirst()) {
+                Log.d(LOG_TAG, "cursor.getCount(): " + cursor.getCount());
+                do {
+                    lockers.put(cursor.getString(cursor.getColumnIndex(KEY_PACKAGE_CODE)), new Locker(cursor.getString(cursor.getColumnIndex(KEY_PACKAGE_CODE)), cursor.getString(cursor.getColumnIndex(KEY_LOCKER_NUMBER))));
+                } while (cursor.moveToNext());
+            } else {
+                Log.d(LOG_TAG, "Cursor fail to move to first");
             }
+        } catch (Exception e) {
+            Log.d(LOG_TAG, "Fail to get the locker table: " + e.getMessage());
+        } finally {
+            if (cursor != null) cursor.close();
         }
-        return locker;
+        return lockers;
     }
 }
