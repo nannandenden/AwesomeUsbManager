@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--information for data key-->
+    <usb-device vender-id="1027" product-id="24597" />
+    <!--information for scanner-->
+    <usb-device vender-id="7851" product-id="32771" />
+</resources>

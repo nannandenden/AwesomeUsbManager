@@ -20,8 +20,10 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,6 +35,7 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
+
     // by giving a pending intent to another application, you are granting the right to perform
     // the operation you have specified as if the other application was yourself
     // PendingIntent is a token that you give to foreign application(3rd party application) which allow foreign application to use
@@ -60,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         interfaceSet = new HashSet<>();
 
         btnUsb = findViewById(R.id.btnUsb);
@@ -89,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startActivity(ScanActivity.startIntent(MainActivity.this));
-                finish();
             }
         });
     }
@@ -192,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
             unregisterReceiver(mUsbReceiver);
         }
     }
+
 }
 
 /**

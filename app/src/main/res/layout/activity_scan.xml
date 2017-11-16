@@ -3,17 +3,39 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="20dp">
 
     <EditText
         android:id="@+id/etScan"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:hint="Enter or Scan the Package Code"/>
 
-    <TextView
-        android:id="@+id/tvResult"
+    <Button
+        android:id="@+id/btnFindLocker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello from the scan"/>
+        android:text="Find the locker"/>
 
+    <Button
+        android:id="@+id/btnScanAgain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Scan Again"/>
+
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+    <TextView
+        android:id="@+id/tvLockerNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="400sp" />
 </LinearLayout>

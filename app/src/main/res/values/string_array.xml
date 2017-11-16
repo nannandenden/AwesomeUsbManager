@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="locker_number">
+        <item>211874</item>
+        <item>222222</item>
+    </string-array>
+</resources>

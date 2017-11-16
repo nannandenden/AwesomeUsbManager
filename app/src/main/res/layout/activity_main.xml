@@ -12,7 +12,7 @@
         android:id="@+id/btnUsb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Check USB device"/>
+        android:text="Register USB Device"/>
 
     <TextView
         android:id="@+id/tvInfo"
@@ -25,7 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="30dp"
-        android:text="Display Endpoints Information"/>
+        android:text="Display USB Endpoints Information"/>
 
     <TextView
         android:id="@+id/tvInterface"
