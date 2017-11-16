@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Map;
+
 /**
  * Created by nanden on 11/14/17.
  */
@@ -20,6 +22,9 @@ import android.widget.Toast;
 public class ScanActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = ScanActivity.class.getSimpleName();
+
+    Map<String, Locker> lockers;
+
     EditText etCode;
     Button btnFindLocker;
     Button btnScanAgain;
@@ -34,6 +39,9 @@ public class ScanActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scan);
+        // retrieve list of locker information
+        lockers = LockerDatabaseHelper.getsInstance(this).getLockerList();
+
         etCode = findViewById(R.id.etScan);
         btnFindLocker = findViewById(R.id.btnFindLocker);
         btnScanAgain = findViewById(R.id.btnScanAgain);
@@ -44,7 +52,7 @@ public class ScanActivity extends AppCompatActivity {
         btnFindLocker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                findLocker();
+                findLocker(lockers, etCode.getText().toString());
             }
         });
 
@@ -55,27 +63,27 @@ public class ScanActivity extends AppCompatActivity {
                 etCode.requestFocus();
                 tvLockerNumber.setText("");
                 tvDescription.setText("");
-                findLocker();
+                findLocker(lockers, etCode.getText().toString());
                 btnScanAgain.setEnabled(false);
             }
         });
 
     }
 
-    private void findLocker() {
-        if (TextUtils.isEmpty(etCode.getText())) {
+    private void findLocker(Map<String, Locker> lockersMap, String pickupCode) {
+        if (TextUtils.isEmpty(pickupCode)) {
             Toast.makeText(ScanActivity.this, "There is no input. The Package Code field cannot be empty", Toast.LENGTH_LONG).show();
             Log.d(LOG_TAG, "no input");
         } else {
-            Log.d(LOG_TAG, "input is " + etCode.getText().toString());
-            Locker locker = LockerDatabaseHelper.getsInstance(ScanActivity.this).getLockerNumber(etCode.getText().toString());
+            Log.d(LOG_TAG, "input is " + pickupCode);
+            Locker locker = lockersMap.get(pickupCode);
             if (locker != null) {
                 tvDescription.setText("Your Locker Number is");
                 tvLockerNumber.setText(locker.lockerNumber);
                 btnScanAgain.setEnabled(true);
             } else {
-                tvDescription.setText("There is no package for code for " + etCode.getText().toString());
-                Toast.makeText(ScanActivity.this, "There is no package for code for " + etCode.getText().toString(), Toast.LENGTH_LONG).show();
+                tvDescription.setText("There is no package for code " + pickupCode);
+                Toast.makeText(ScanActivity.this, "There is no package for code for " + pickupCode, Toast.LENGTH_LONG).show();
             }
         }
     }
